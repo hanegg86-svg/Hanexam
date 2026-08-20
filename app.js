@@ -61,6 +61,13 @@ const App = {
                 UI.renderView('quiz', Store.state);
             }
 
+            // Category Pill Filter click
+            const categoryPill = e.target.closest('.category-pill');
+            if (categoryPill) {
+                Store.setSelectedCategory(categoryPill.dataset.category);
+                UI.renderView('history', Store.state);
+            }
+
             // History item click
             const historyItem = e.target.closest('.history-item');
             const deleteBtn = e.target.closest('.btn-delete-history');
@@ -149,12 +156,12 @@ const App = {
     },
 
     async callGeminiAPI(apiKey, base64Data, mimeType) {
-        // Direct REST Call to Gemini API (Using gemini-3.5-flash-lite)
         const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`;
 
         const promptText = `
         คุณคือผู้เชี่ยวชาญด้านการติวสอบ กรุณาอ่านและวิเคราะห์เนื้อหาจากเอกสาร/รูปภาพนี้ แล้วตอบกลับมาในรูปแบบ JSON Structure เท่านั้น ห้ามใส่ข้อความอื่นนอกเหนือจาก JSON:
         {
+            "subject": "ชื่อวิชาหรือหมวดหมู่เนื้อหา (สั้นๆ ไม่เกิน 3 คำ)",
             "summaryTitle": "หัวข้อเรื่องสรุปที่กระชับน่าสนใจ",
             "summaryPoints": [
                 "ประเด็นสำคัญที่ 1",
@@ -204,12 +211,10 @@ const App = {
         const data = await response.json();
         const rawText = data.candidates[0].content.parts[0].text;
         
-        // Parse Clean JSON output
         return JSON.parse(rawText);
     }
 };
 
-// Start Application on DOM Content Loaded
 document.addEventListener('DOMContentLoaded', () => {
     App.init();
 });

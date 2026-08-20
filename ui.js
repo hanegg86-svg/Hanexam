@@ -25,6 +25,8 @@ const UI = {
                     <button id="btn-camera" class="btn btn-primary" style="flex: 1;">ถ่ายรูป</button>
                     <button id="btn-file" class="btn" style="flex: 1; border: 1px solid var(--border);">เลือกไฟล์</button>
                 </div>
+                <input type="file" id="input-camera" accept="image/*" capture="environment" style="display: none;">
+                <input type="file" id="input-file" accept="image/*,.pdf" style="display: none;">
             </div>
         `;
     },
@@ -43,7 +45,7 @@ const UI = {
             return;
         }
 
-        const bullets = data.summaryPoints.map(pt => `<li>${pt}</li>`).join('');
+        const bullets = data.summaryPoints.map(pt => `<li style="margin-bottom: 6px;">${pt}</li>`).join('');
 
         this.contentContainer.innerHTML = `
             <div class="card">
@@ -72,33 +74,35 @@ const UI = {
             this.contentContainer.innerHTML = `
                 <div class="card" style="text-align: center; padding: 40px 20px;">
                     <span style="font-size: 3rem;">🧠</span>
-                    <h3 style="margin-top: 10px;">ยังไม่มีข้อสอบ</h3>
+                    <h3 style="margin-top: 10px;">ยังไม่มีแบบทดสอบ</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 6px;">
+                        กรุณาสร้างสรุปเนื้อหาก่อน เพื่อให้ AI ออกข้อสอบให้
+                    </p>
                 </div>
             `;
             return;
         }
 
-        let html = `<div class="card-title" style="margin-bottom: 16px;">แบบทดสอบ (${data.quiz.length} ข้อ)</div>`;
+        let html = `<div class="card-title" style="margin-bottom: 16px;">แบบทดสอบเก็งข้อสอบ (${data.quiz.length} ข้อ)</div>`;
         data.quiz.forEach((q, qIndex) => {
-            html += `<div class="card"><p style="font-weight:600; margin-bottom:12px;">ข้อ ${qIndex + 1}: ${q.question}</p>`;
+            html += `<div class="card"><p style="font-weight:600; margin-bottom:12px; color: var(--text-primary);">ข้อ ${qIndex + 1}: ${q.question}</p>`;
             q.options.forEach((opt, oIndex) => {
                 const isSelected = answers && answers[qIndex] === oIndex;
                 html += `
                     <button class="btn option-btn full-width" data-qindex="${qIndex}" data-oindex="${oIndex}" 
                         style="margin-bottom:8px; border:1px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}; 
                         background:${isSelected ? 'var(--primary-light)' : '#fff'}; 
-                        color:${isSelected ? 'var(--primary)' : 'var(--text-primary)'}; justify-content:flex-start; text-align:left;">
+                        color:${isSelected ? 'var(--primary)' : 'var(--text-primary)'}; justify-content:flex-start; text-align:left; line-height: 1.4;">
                         ${opt}
                     </button>`;
             });
             
-            // แสดงเฉลยถ้ามีการตอบแล้ว
             if (answers && answers[qIndex] !== undefined) {
                 const isCorrect = answers[qIndex] === q.correctIndex;
                 html += `
-                    <div style="margin-top:12px; padding:12px; border-radius:8px; background:${isCorrect ? '#dcfce7' : '#fee2e2'}; color:${isCorrect ? '#166534' : '#991b1b'}; font-size:0.9rem;">
+                    <div style="margin-top:12px; padding:12px; border-radius:8px; background:${isCorrect ? '#dcfce7' : '#fee2e2'}; color:${isCorrect ? '#166534' : '#991b1b'}; font-size:0.9rem; line-height: 1.5;">
                         <strong>${isCorrect ? '✅ ถูกต้อง!' : '❌ ผิดครับ'}</strong><br>
-                        คำตอบที่ถูกคือ: ${q.options[q.correctIndex]}<br>
+                        คำตอบที่ถูกคือ: <strong>${q.options[q.correctIndex]}</strong><br>
                         <em>คำอธิบาย: ${q.explanation}</em>
                     </div>
                 `;
@@ -134,12 +138,12 @@ const UI = {
         }
 
         const historyHTML = filteredList.map(item => `
-            <div class="history-item" data-id="${item.id}" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:12px;">
+            <div class="history-item" data-id="${item.id}" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:12px; cursor: pointer;">
                 <div>
                     <div style="margin-bottom: 4px;">
                         <span class="subject-tag">${item.subject || 'ทั่วไป'}</span>
                     </div>
-                    <div style="font-weight: 600; font-size: 0.95rem;">${item.summaryTitle || 'สรุปบทเรียน'}</div>
+                    <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-primary);">${item.summaryTitle || 'สรุปบทเรียน'}</div>
                     <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">
                         ⏱️ ${item.timestamp} • ${item.quiz ? item.quiz.length : 0} ข้อสอบ
                     </div>
@@ -179,12 +183,24 @@ const UI = {
         toast.textContent = message;
         toast.style.background = '#334155';
         toast.style.color = '#fff';
-        toast.style.padding = '12px 20px';
-        toast.style.borderRadius = '8px';
+        toast.style.padding = '10px 20px';
+        toast.style.borderRadius = '20px';
         toast.style.marginTop = '10px';
-        toast.style.fontSize = '0.9rem';
-        toast.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+        toast.style.fontSize = '0.85rem';
+        toast.style.fontWeight = '500';
+        toast.style.boxShadow = '0 4px 10px rgba(0,0,0,0.15)';
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s ease-in-out';
+        
         container.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
+        
+        // Fade in
+        setTimeout(() => toast.style.opacity = '1', 10);
+        
+        // Fade out and remove
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
     }
 };

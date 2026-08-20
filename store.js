@@ -8,7 +8,7 @@ const Store = {
         history: [],
         currentData: null,
         currentQuizAnswers: {},
-        selectedCategory: 'ทั้งหมด' // เพิ่ม State สำหรับกรองหมวดหมู่
+        selectedCategory: 'ทั้งหมด'
     },
 
     init() {
@@ -50,7 +50,6 @@ const Store = {
         return this.state.selectedCategory || 'ทั้งหมด';
     },
 
-    // ดึงหมวดหมู่วิชาทั้งหมดที่มีในประวัติแบบไม่ซ้ำกัน
     getCategories() {
         const categories = new Set(['ทั้งหมด']);
         this.state.history.forEach(item => {
@@ -65,7 +64,7 @@ const Store = {
             timestamp: new Date().toLocaleDateString('th-TH', {
                 month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
             }),
-            subject: data.subject || 'ทั่วไป', // เพิ่มฟิลด์หมวดหมู่วิชา
+            subject: data.subject || 'ทั่วไป',
             ...data
         };
         this.state.currentQuizAnswers = {};
@@ -79,7 +78,6 @@ const Store = {
     saveToHistory(item) {
         this.state.history.unshift(item);
         if (this.state.history.length > 20) this.state.history.pop();
-        // บันทึกรวมข้อมูลหมวดหมู่ลง LocalStorage อัตโนมัติ
         localStorage.setItem('examprep_history', JSON.stringify(this.state.history));
     },
 
