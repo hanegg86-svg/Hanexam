@@ -96,14 +96,14 @@ const App = {
             }
         });
 
-        // Handler สำหรับจัดการหลายไฟล์
+        // Handler สำหรับจัดการหลายไฟล์ (เปลี่ยนเป็น 10 ไฟล์)
         document.getElementById('app-content').addEventListener('change', (e) => {
             if (e.target.id === 'input-camera' || e.target.id === 'input-file') {
                 const files = Array.from(e.target.files);
                 if (files.length === 0) return;
                 
-                if (files.length > 5) {
-                    UI.showToast('เลือกไฟล์ได้สูงสุด 5 หน้าต่อครั้งครับ');
+                if (files.length > 10) {
+                    UI.showToast('เลือกไฟล์ได้สูงสุด 10 หน้าต่อครั้งครับ');
                     e.target.value = '';
                     return;
                 }

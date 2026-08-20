@@ -20,7 +20,7 @@ const UI = {
                 <h3 style="margin-top: 10px;">อัปโหลดชีทเรียน</h3>
                 <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 6px; margin-bottom: 20px;">
                     อัปโหลดรูปภาพหรือเอกสารเพื่อให้ AI สรุปเนื้อหาและเก็งข้อสอบให้ <br>
-                    <span style="color: var(--primary); font-weight: 500;">(เลือกพร้อมกันได้สูงสุด 5 ไฟล์)</span>
+                    <span style="color: var(--primary); font-weight: 500;">(เลือกพร้อมกันได้สูงสุด 10 ไฟล์)</span>
                 </p>
                 <div style="display: flex; gap: 10px; justify-content: center;">
                     <button id="btn-camera" class="btn btn-primary" style="flex: 1;">ถ่ายรูป</button>
