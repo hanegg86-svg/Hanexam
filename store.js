@@ -88,6 +88,14 @@ const Store = {
         return this.state.history;
     },
 
+    updateHistoryItemSubject(id, newSubject) {
+        const item = this.state.history.find(h => h.id === id);
+        if (item) {
+            item.subject = newSubject.trim();
+            localStorage.setItem('examprep_history', JSON.stringify(this.state.history));
+        }
+    },
+
     loadHistoryItem(id) {
         const item = this.state.history.find(h => h.id === id);
         if (item) {

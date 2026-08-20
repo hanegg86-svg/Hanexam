@@ -19,14 +19,15 @@ const UI = {
                 <span style="font-size: 3rem;">📷</span>
                 <h3 style="margin-top: 10px;">อัปโหลดชีทเรียน</h3>
                 <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 6px; margin-bottom: 20px;">
-                    อัปโหลดรูปภาพหรือเอกสารเพื่อให้ AI สรุปเนื้อหาและเก็งข้อสอบให้
+                    อัปโหลดรูปภาพหรือเอกสารเพื่อให้ AI สรุปเนื้อหาและเก็งข้อสอบให้ <br>
+                    <span style="color: var(--primary); font-weight: 500;">(เลือกพร้อมกันได้สูงสุด 5 ไฟล์)</span>
                 </p>
                 <div style="display: flex; gap: 10px; justify-content: center;">
                     <button id="btn-camera" class="btn btn-primary" style="flex: 1;">ถ่ายรูป</button>
                     <button id="btn-file" class="btn" style="flex: 1; border: 1px solid var(--border);">เลือกไฟล์</button>
                 </div>
                 <input type="file" id="input-camera" accept="image/*" capture="environment" style="display: none;">
-                <input type="file" id="input-file" accept="image/*,.pdf" style="display: none;">
+                <input type="file" id="input-file" accept="image/*,.pdf" multiple style="display: none;">
             </div>
         `;
     },
@@ -140,8 +141,9 @@ const UI = {
         const historyHTML = filteredList.map(item => `
             <div class="history-item" data-id="${item.id}" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:12px; cursor: pointer;">
                 <div>
-                    <div style="margin-bottom: 4px;">
+                    <div style="margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
                         <span class="subject-tag">${item.subject || 'ทั่วไป'}</span>
+                        <button class="btn-edit-subject" data-id="${item.id}" style="background:none; border:none; font-size: 0.9rem; cursor:pointer; padding: 2px;">✏️</button>
                     </div>
                     <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-primary);">${item.summaryTitle || 'สรุปบทเรียน'}</div>
                     <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">
@@ -194,10 +196,8 @@ const UI = {
         
         container.appendChild(toast);
         
-        // Fade in
         setTimeout(() => toast.style.opacity = '1', 10);
         
-        // Fade out and remove
         setTimeout(() => {
             toast.style.opacity = '0';
             setTimeout(() => toast.remove(), 300);

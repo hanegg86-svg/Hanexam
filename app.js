@@ -9,7 +9,6 @@ const App = {
     },
 
     bindEvents() {
-        // Navigation Bar Tabs
         document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const tab = e.currentTarget.dataset.tab;
@@ -17,7 +16,6 @@ const App = {
             });
         });
 
-        // Settings Modal
         document.getElementById('btn-settings').addEventListener('click', () => {
             document.getElementById('input-api-key').value = Store.getApiKey();
             document.getElementById('modal-settings').classList.remove('hidden');
@@ -38,21 +36,17 @@ const App = {
             UI.showToast('บันทึก API Key เรียบร้อย');
         });
 
-        // Event Delegation for Content Area
         document.getElementById('app-content').addEventListener('click', (e) => {
-            // Upload view actions
             if (e.target.closest('#btn-camera')) {
                 document.getElementById('input-camera').click();
             } else if (e.target.closest('#btn-file')) {
                 document.getElementById('input-file').click();
             }
 
-            // Summary view action -> Go to Quiz
             if (e.target.closest('#btn-go-quiz')) {
                 this.switchTab('quiz');
             }
 
-            // Quiz option select action
             const optBtn = e.target.closest('.option-btn');
             if (optBtn) {
                 const qIndex = parseInt(optBtn.dataset.qindex);
@@ -61,14 +55,30 @@ const App = {
                 UI.renderView('quiz', Store.state);
             }
 
-            // Category Pill Filter click
             const categoryPill = e.target.closest('.category-pill');
             if (categoryPill) {
                 Store.setSelectedCategory(categoryPill.dataset.category);
                 UI.renderView('history', Store.state);
             }
 
-            // History item click
+            // Edit Subject Button Click
+            const editSubBtn = e.target.closest('.btn-edit-subject');
+            if (editSubBtn) {
+                e.stopPropagation();
+                const id = editSubBtn.dataset.id;
+                const currentItem = Store.state.history.find(h => h.id === id);
+                
+                if (currentItem) {
+                    const newSubject = prompt('แก้ไขชื่อหมวดหมู่วิชา:', currentItem.subject);
+                    if (newSubject !== null && newSubject.trim() !== '') {
+                        Store.updateHistoryItemSubject(id, newSubject);
+                        UI.renderView('history', Store.state);
+                        UI.showToast('อัปเดตหมวดหมู่เรียบร้อย');
+                    }
+                }
+                return;
+            }
+
             const historyItem = e.target.closest('.history-item');
             const deleteBtn = e.target.closest('.btn-delete-history');
             
@@ -86,11 +96,20 @@ const App = {
             }
         });
 
-        // File Inputs Handler
+        // Handler สำหรับจัดการหลายไฟล์
         document.getElementById('app-content').addEventListener('change', (e) => {
             if (e.target.id === 'input-camera' || e.target.id === 'input-file') {
-                const file = e.target.files[0];
-                if (file) this.handleProcessFile(file);
+                const files = Array.from(e.target.files);
+                if (files.length === 0) return;
+                
+                if (files.length > 5) {
+                    UI.showToast('เลือกไฟล์ได้สูงสุด 5 หน้าต่อครั้งครับ');
+                    e.target.value = '';
+                    return;
+                }
+                
+                this.handleProcessFiles(files);
+                e.target.value = '';
             }
         });
     },
@@ -115,7 +134,7 @@ const App = {
         UI.renderView(Store.getActiveTab(), Store.state);
     },
 
-    async handleProcessFile(file) {
+    async handleProcessFiles(files) {
         const apiKey = Store.getApiKey();
         if (!apiKey) {
             UI.showToast('กรุณาใส่ Gemini API Key ก่อนใช้งาน');
@@ -124,12 +143,17 @@ const App = {
         }
 
         try {
-            UI.toggleLoading(true, 'กำลังอ่านไฟล์และแปลงข้อมูล...');
-            const base64Data = await this.fileToBase64(file);
-            const mimeType = file.type || 'image/jpeg';
+            UI.toggleLoading(true, `กำลังอ่านไฟล์ทั้ง ${files.length} หน้า...`);
+            
+            const fileDatas = [];
+            for (const file of files) {
+                const base64Data = await this.fileToBase64(file);
+                const mimeType = file.type || 'image/jpeg';
+                fileDatas.push({ base64Data, mimeType });
+            }
 
             UI.toggleLoading(true, 'Gemini 3.5 Flash Lite กำลังวิเคราะห์เนื้อหา...');
-            const aiResponse = await this.callGeminiAPI(apiKey, base64Data, mimeType);
+            const aiResponse = await this.callGeminiAPI(apiKey, fileDatas);
 
             Store.setCurrentData(aiResponse);
             UI.toggleLoading(false);
@@ -138,7 +162,7 @@ const App = {
 
         } catch (error) {
             UI.toggleLoading(false);
-            console.error('Error processing file:', error);
+            console.error('Error processing files:', error);
             UI.showToast('เกิดข้อผิดพลาด: ' + (error.message || 'ไม่สามารถวิเคราะห์ได้'));
         }
     },
@@ -155,11 +179,11 @@ const App = {
         });
     },
 
-    async callGeminiAPI(apiKey, base64Data, mimeType) {
+    async callGeminiAPI(apiKey, fileDatas) {
         const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`;
 
         const promptText = `
-        คุณคือผู้เชี่ยวชาญด้านการติวสอบ กรุณาอ่านและวิเคราะห์เนื้อหาจากเอกสาร/รูปภาพนี้ แล้วตอบกลับมาในรูปแบบ JSON Structure เท่านั้น ห้ามใส่ข้อความอื่นนอกเหนือจาก JSON:
+        คุณคือผู้เชี่ยวชาญด้านการติวสอบ กรุณาอ่านและวิเคราะห์เนื้อหาจากเอกสาร/รูปภาพที่แนบมาทั้งหมด แล้วสรุปเชื่อมโยงเนื้อหากัน จากนั้นตอบกลับมาในรูปแบบ JSON Structure เท่านั้น ห้ามใส่ข้อความอื่นนอกเหนือจาก JSON:
         {
             "subject": "ชื่อวิชาหรือหมวดหมู่เนื้อหา (สั้นๆ ไม่เกิน 3 คำ)",
             "summaryTitle": "หัวข้อเรื่องสรุปที่กระชับน่าสนใจ",
@@ -180,18 +204,19 @@ const App = {
         }
         เก็งข้อสอบสร้างมาอย่างน้อย 3-5 ข้อ`;
 
+        const parts = [{ text: promptText }];
+        
+        fileDatas.forEach(file => {
+            parts.push({
+                inline_data: {
+                    mime_type: file.mimeType,
+                    data: file.base64Data
+                }
+            });
+        });
+
         const requestBody = {
-            contents: [{
-                parts: [
-                    { text: promptText },
-                    {
-                        inline_data: {
-                            mime_type: mimeType,
-                            data: base64Data
-                        }
-                    }
-                ]
-            }],
+            contents: [{ parts: parts }],
             generationConfig: {
                 response_mime_type: "application/json"
             }
