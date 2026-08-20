@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>ExamPrep AI - ผู้ช่วยติวสอบส่วนตัว</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app" class="app-container">
+        <!-- App Header -->
+        <header class="app-header">
+            <div class="header-brand">
+                <span class="logo-icon">📚</span>
+                <h1 class="app-title">ExamPrep <span class="badge">AI</span></h1>
+            </div>
+            <button id="btn-settings" class="icon-button" aria-label="ตั้งค่า API Key">
+                ⚙️
+            </button>
+        </header>
+
+        <!-- Main Content Area (Scrollable) -->
+        <main id="app-content" class="app-content">
+            <!-- Dynamic Content Will Be Rendered Here by ui.js -->
+        </main>
+
+        <!-- Bottom Navigation Bar -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" data-tab="upload">
+                <span class="nav-icon">📷</span>
+                <span class="nav-label">สแกน/อัปโหลด</span>
+            </button>
+            <button class="nav-item" data-tab="summary">
+                <span class="nav-icon">📝</span>
+                <span class="nav-label">สรุปเนื้อหา</span>
+            </button>
+            <button class="nav-item" data-tab="quiz">
+                <span class="nav-icon">🧠</span>
+                <span class="nav-label">ทำข้อสอบ</span>
+            </button>
+            <button class="nav-item" data-tab="history">
+                <span class="nav-icon">📂</span>
+                <span class="nav-label">ประวัติ</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="modal-settings" class="modal-backdrop hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>ตั้งค่า Gemini API Key</h3>
+                <button id="btn-close-settings" class="close-button">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-sm">กรุณาใส่ Gemini API Key ของคุณเพื่อเริ่มใช้งานระบบวิเคราะห์และสร้างข้อสอบ</p>
+                <div class="form-group">
+                    <label for="input-api-key">API Key</label>
+                    <input type="password" id="input-api-key" placeholder="AIzaSy..." class="form-control">
+                </div>
+                <div class="model-badge">Model: <span>gemini-3.5-flash-lite</span></div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-save-key" class="btn btn-primary full-width">บันทึกข้อมูล</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="spinner"></div>
+        <p id="loading-text">กำลังประมวลผลด้วย AI...</p>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="store.js"></script>
+    <script src="ui.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
