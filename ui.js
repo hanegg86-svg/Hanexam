@@ -1,3 +1,34 @@
+const UI = {
+    contentContainer: document.getElementById('app-content'),
+
+    renderView(viewName, state) {
+        if (viewName === 'upload') {
+            this.renderUploadView();
+        } else if (viewName === 'summary') {
+            this.renderSummaryView(state.currentData);
+        } else if (viewName === 'quiz') {
+            this.renderQuizView(state.currentData, state.currentQuizAnswers);
+        } else if (viewName === 'history') {
+            this.renderHistoryView(state.history);
+        }
+    },
+
+    renderUploadView() {
+        this.contentContainer.innerHTML = `
+            <div class="card" style="text-align: center; padding: 40px 20px;">
+                <span style="font-size: 3rem;">📷</span>
+                <h3 style="margin-top: 10px;">อัปโหลดชีทเรียน</h3>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 6px; margin-bottom: 20px;">
+                    อัปโหลดรูปภาพหรือเอกสารเพื่อให้ AI สรุปเนื้อหาและเก็งข้อสอบให้
+                </p>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button id="btn-camera" class="btn btn-primary" style="flex: 1;">ถ่ายรูป</button>
+                    <button id="btn-file" class="btn" style="flex: 1; border: 1px solid var(--border);">เลือกไฟล์</button>
+                </div>
+            </div>
+        `;
+    },
+
     renderSummaryView(data) {
         if (!data) {
             this.contentContainer.innerHTML = `
@@ -20,7 +51,7 @@
                     <span class="subject-badge">📚 วิชา: ${data.subject || 'ทั่วไป'}</span>
                 </div>
                 <div class="card-title">📌 ${data.summaryTitle || 'สรุปประเด็นสำคัญ'}</div>
-                <ul class="summary-bullet">
+                <ul class="summary-bullet" style="padding-left: 20px; color: #334155;">
                     ${bullets}
                 </ul>
             </div>
@@ -34,6 +65,47 @@
                 🧠 เริ่มทำแบบทดสอบเก็งข้อสอบ (${data.quiz ? data.quiz.length : 0} ข้อ)
             </button>
         `;
+    },
+
+    renderQuizView(data, answers) {
+        if (!data || !data.quiz) {
+            this.contentContainer.innerHTML = `
+                <div class="card" style="text-align: center; padding: 40px 20px;">
+                    <span style="font-size: 3rem;">🧠</span>
+                    <h3 style="margin-top: 10px;">ยังไม่มีข้อสอบ</h3>
+                </div>
+            `;
+            return;
+        }
+
+        let html = `<div class="card-title" style="margin-bottom: 16px;">แบบทดสอบ (${data.quiz.length} ข้อ)</div>`;
+        data.quiz.forEach((q, qIndex) => {
+            html += `<div class="card"><p style="font-weight:600; margin-bottom:12px;">ข้อ ${qIndex + 1}: ${q.question}</p>`;
+            q.options.forEach((opt, oIndex) => {
+                const isSelected = answers && answers[qIndex] === oIndex;
+                html += `
+                    <button class="btn option-btn full-width" data-qindex="${qIndex}" data-oindex="${oIndex}" 
+                        style="margin-bottom:8px; border:1px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}; 
+                        background:${isSelected ? 'var(--primary-light)' : '#fff'}; 
+                        color:${isSelected ? 'var(--primary)' : 'var(--text-primary)'}; justify-content:flex-start; text-align:left;">
+                        ${opt}
+                    </button>`;
+            });
+            
+            // แสดงเฉลยถ้ามีการตอบแล้ว
+            if (answers && answers[qIndex] !== undefined) {
+                const isCorrect = answers[qIndex] === q.correctIndex;
+                html += `
+                    <div style="margin-top:12px; padding:12px; border-radius:8px; background:${isCorrect ? '#dcfce7' : '#fee2e2'}; color:${isCorrect ? '#166534' : '#991b1b'}; font-size:0.9rem;">
+                        <strong>${isCorrect ? '✅ ถูกต้อง!' : '❌ ผิดครับ'}</strong><br>
+                        คำตอบที่ถูกคือ: ${q.options[q.correctIndex]}<br>
+                        <em>คำอธิบาย: ${q.explanation}</em>
+                    </div>
+                `;
+            }
+            html += `</div>`;
+        });
+        this.contentContainer.innerHTML = html;
     },
 
     renderHistoryView(historyList) {
@@ -62,7 +134,7 @@
         }
 
         const historyHTML = filteredList.map(item => `
-            <div class="history-item" data-id="${item.id}">
+            <div class="history-item" data-id="${item.id}" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:12px;">
                 <div>
                     <div style="margin-bottom: 4px;">
                         <span class="subject-tag">${item.subject || 'ทั่วไป'}</span>
@@ -72,18 +144,47 @@
                         ⏱️ ${item.timestamp} • ${item.quiz ? item.quiz.length : 0} ข้อสอบ
                     </div>
                 </div>
-                <button class="btn-delete-history" data-id="${item.id}" style="background:none; border:none; color: var(--danger); font-size: 1.1rem; padding: 4px;">🗑️</button>
+                <button class="btn-delete-history" data-id="${item.id}" style="background:none; border:none; color: var(--danger); font-size: 1.2rem; cursor:pointer; padding: 8px;">🗑️</button>
             </div>
         `).join('');
 
         this.contentContainer.innerHTML = `
-            <div class="card-title" style="margin-bottom: 8px;">หมวดหมู่วิชา</div>
-            <div class="category-pills-container">
-                ${pillsHTML}
+            <div class="card">
+                <div class="card-title" style="margin-bottom: 8px;">หมวดหมู่วิชา</div>
+                <div class="category-pills-container">
+                    ${pillsHTML}
+                </div>
             </div>
-            <div class="card-title" style="margin-top: 16px; margin-bottom: 12px;">
-                ประวัติการติว (${filteredList.length})
+            <div class="card">
+                <div class="card-title" style="margin-bottom: 12px;">
+                    ประวัติการติว (${filteredList.length})
+                </div>
+                ${filteredList.length > 0 ? historyHTML : '<div style="text-align:center; padding:20px; color:var(--text-secondary);">ไม่พบรายการในหมวดหมู่นี้</div>'}
             </div>
-            ${filteredList.length > 0 ? historyHTML : '<div class="card" style="text-align:center; padding:20px; color:var(--text-secondary);">ไม่พบรายการในหมวดหมู่นี้</div>'}
         `;
     },
+
+    toggleLoading(show, text = 'กำลังประมวลผลด้วย AI...') {
+        const overlay = document.getElementById('loading-overlay');
+        const textEl = document.getElementById('loading-text');
+        if (textEl) textEl.textContent = text;
+        if (show) overlay.classList.remove('hidden');
+        else overlay.classList.add('hidden');
+    },
+
+    showToast(message) {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+        const toast = document.createElement('div');
+        toast.textContent = message;
+        toast.style.background = '#334155';
+        toast.style.color = '#fff';
+        toast.style.padding = '12px 20px';
+        toast.style.borderRadius = '8px';
+        toast.style.marginTop = '10px';
+        toast.style.fontSize = '0.9rem';
+        toast.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+};
